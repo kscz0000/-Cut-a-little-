@@ -1,0 +1,18 @@
+{
+  "last_directory": "D:/豆包游览器资源",
+  "output_format": "PNG",
+  "auto_detect_grid": true,
+  "default_grid_type": "auto",
+  "window_size": "1260x769+-27+66",
+  "custom_output_path": "D:/豆包游览器资源/original-gpt4o-22000-1756171850524-4c0a83f3-2_4split",
+  "use_custom_output": true,
+  "custom_rows": 3,
+  "custom_cols": 3,
+  "enable_manual_lines": false,
+  "output_mode": "same_dir",
+  "last_rotation_angles": {},
+  "language": "zh",
+  "sash_position": 250,
+  "force_split_mode": false,
+  "theme": "modern"
+}

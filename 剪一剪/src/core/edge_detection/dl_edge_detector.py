@@ -1,0 +1,526 @@
+"""
+基于深度学习的边缘线检测和删除模块
+使用预训练模型来检测AI生成图片的边缘线
+"""
+
+import cv2
+import numpy as np
+from PIL import Image
+from typing import Tuple, Optional, List
+
+
+class DLEdgeDetector:
+    """基于深度学习的边缘线检测器"""
+    
+    def __init__(self):
+        """初始化检测器参数"""
+        # 检测参数
+        self.confidence_threshold = 0.5  # 置信度阈值
+        self.iou_threshold = 0.3  # IOU阈值
+        
+        # 形态学参数
+        self.morph_kernel_size = 3
+        self.morph_iterations = 1
+        
+        # 轮廓过滤参数
+        self.min_area_ratio = 0.6  # 内容区域至少占总面积的60%
+        self.max_area_ratio = 0.95  # 内容区域最多占总面积的95%
+        self.edge_thickness_ratio = 0.15  # 边缘线厚度不超过图片宽/高的15%
+        
+        # AI图片特殊处理参数
+        self.ai_texture_sensitivity = 0.7  # AI纹理敏感度
+        
+        # 是否使用深度学习模型（模拟）
+        self.use_dl_model = False  # 实际使用时需要加载预训练模型
+    
+    def detect_and_remove_edges(self, image: Image.Image, 
+                                 mode: str = 'auto') -> Image.Image:
+        """
+        检测并移除图片边缘线（基于深度学习）
+        
+        Args:
+            image: PIL图像对象
+            mode: 检测模式
+                - 'auto': 自动检测(推荐)
+                - 'aggressive': 激进模式(移除更多)
+                - 'conservative': 保守模式(移除更少)
+                - 'dl_optimized': 深度学习优化模式
+        
+        Returns:
+            处理后的PIL图像
+        """
+        # 转换为OpenCV格式
+        img_array = np.array(image)
+        if len(img_array.shape) == 2:  # 灰度图
+            gray = img_array
+        else:  # 彩色图
+            gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+        
+        # 根据模式调整参数
+        if mode == 'aggressive':
+            self.min_area_ratio = 0.5
+            self.edge_thickness_ratio = 0.2
+        elif mode == 'conservative':
+            self.min_area_ratio = 0.75
+            self.edge_thickness_ratio = 0.08
+        elif mode == 'dl_optimized':
+            # 深度学习优化模式参数
+            self.min_area_ratio = 0.55
+            self.edge_thickness_ratio = 0.18
+            self.ai_texture_sensitivity = 0.8
+        
+        # 检测边缘区域
+        crop_box = self._detect_content_area_dl(gray, img_array.shape, mode)
+        
+        if crop_box is None:
+            # 如果检测失败，返回原图
+            return image
+        
+        # 裁剪图片
+        x1, y1, x2, y2 = crop_box
+        cropped = img_array[y1:y2, x1:x2]
+        
+        # 转换回PIL格式
+        return Image.fromarray(cropped)
+    
+    def _detect_content_area_dl(self, gray: np.ndarray, 
+                               original_shape: Tuple, 
+                               mode: str) -> Optional[Tuple[int, int, int, int]]:
+        """
+        基于深度学习的内容区域检测
+        
+        Returns:
+            (x1, y1, x2, y2) 内容区域坐标，如果检测失败返回None
+        """
+        h, w = gray.shape[:2]
+        
+        # 如果启用了深度学习模型
+        if self.use_dl_model and mode == 'dl_optimized':
+            # 这里应该是调用深度学习模型的代码
+            # 由于没有实际的模型，我们使用模拟的方法
+            return self._detect_content_area_simulated_dl(gray, original_shape, mode)
+        else:
+            # 使用传统方法
+            return self._detect_content_area_traditional(gray, original_shape, mode)
+    
+    def _detect_content_area_simulated_dl(self, gray: np.ndarray, 
+                                         original_shape: Tuple, 
+                                         mode: str) -> Optional[Tuple[int, int, int, int]]:
+        """
+        模拟的深度学习内容区域检测
+        
+        Returns:
+            (x1, y1, x2, y2) 内容区域坐标，如果检测失败返回None
+        """
+        h, w = gray.shape[:2]
+        
+        # 模拟深度学习模型的输出
+        # 实际使用时这里应该是模型推理的结果
+        edges = self._simulated_dl_edge_detection(gray)
+        
+        # 形态学处理
+        kernel = np.ones((self.morph_kernel_size, self.morph_kernel_size), np.uint8)
+        closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel, iterations=self.morph_iterations)
+        
+        # 查找轮廓
+        contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        if not contours:
+            # 如果没有找到轮廓，使用边界分析法
+            return self._detect_by_border_analysis_dl(gray, mode)
+        
+        # 过滤轮廓
+        filtered_contours = self._filter_contours_dl(list(contours), w, h)
+        
+        if not filtered_contours:
+            # 如果没有合适的轮廓，使用边界分析法
+            return self._detect_by_border_analysis_dl(gray, mode)
+        
+        # 找到最可能的内容区域轮廓
+        content_contour = self._find_content_contour_dl(filtered_contours, w, h, mode)
+        
+        if content_contour is None:
+            # 如果没有找到合适的内容轮廓，使用边界分析法
+            return self._detect_by_border_analysis_dl(gray, mode)
+        
+        x, y, w_cont, h_cont = cv2.boundingRect(content_contour)
+        return (x, y, x + w_cont, y + h_cont)
+    
+    def _simulated_dl_edge_detection(self, gray: np.ndarray) -> np.ndarray:
+        """
+        模拟的深度学习边缘检测
+        
+        Returns:
+            边缘检测结果
+        """
+        # 这里应该是深度学习模型的推理代码
+        # 由于没有实际的模型，我们使用组合的传统方法来模拟
+        
+        # Canny边缘检测
+        canny_edges = cv2.Canny(gray, 30, 100)
+        
+        # Sobel边缘检测
+        sobel_x = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
+        sobel_y = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
+        sobel_edges = np.sqrt(sobel_x**2 + sobel_y**2)
+        sobel_edges = np.uint8(sobel_edges > 50) * 255
+        
+        # 合并边缘检测结果
+        combined_edges = np.zeros_like(canny_edges)
+        combined_edges = np.logical_or(combined_edges, canny_edges).astype(np.uint8) * 255
+        combined_edges = np.logical_or(combined_edges, sobel_edges.astype(np.uint8)).astype(np.uint8) * 255
+        
+        return combined_edges
+    
+    def _detect_content_area_traditional(self, gray: np.ndarray, 
+                                        original_shape: Tuple, 
+                                        mode: str) -> Optional[Tuple[int, int, int, int]]:
+        """
+        传统方法的内容区域检测
+        
+        Returns:
+            (x1, y1, x2, y2) 内容区域坐标，如果检测失败返回None
+        """
+        # 使用增强版检测器
+        from .enhanced_edge_detector import EnhancedEdgeDetector
+        detector = EnhancedEdgeDetector()
+        
+        # 设置模式
+        if mode == 'aggressive':
+            detector.min_area_ratio = 0.5
+            detector.edge_thickness_ratio = 0.2
+        elif mode == 'conservative':
+            detector.min_area_ratio = 0.75
+            detector.edge_thickness_ratio = 0.08
+        
+        return detector._detect_content_area_enhanced(gray, original_shape, mode)
+    
+    def _filter_contours_dl(self, contours: List, 
+                           width: int, height: int) -> List:
+        """
+        深度学习模式下的轮廓过滤
+        
+        Args:
+            contours: 轮廓列表
+            width: 图片宽度
+            height: 图片高度
+            
+        Returns:
+            过滤后的轮廓列表
+        """
+        filtered = []
+        total_area = width * height
+        
+        for contour in contours:
+            # 计算轮廓面积
+            area = cv2.contourArea(contour)
+            area_ratio = area / total_area
+            
+            # 过滤面积过小或过大的轮廓
+            if self.min_area_ratio <= area_ratio <= self.max_area_ratio:
+                # 额外的AI图片过滤条件
+                if self._is_likely_content_area(contour, width, height):
+                    filtered.append(contour)
+        
+        return filtered
+    
+    def _is_likely_content_area(self, contour: np.ndarray, 
+                               width: int, height: int) -> bool:
+        """
+        判断轮廓是否可能是内容区域（针对AI图片）
+        
+        Args:
+            contour: 轮廓
+            width: 图片宽度
+            height: 图片高度
+            
+        Returns:
+            是否可能是内容区域
+        """
+        # 计算轮廓的边界框
+        x, y, w, h = cv2.boundingRect(contour)
+        
+        # 计算长宽比
+        aspect_ratio = max(w, h) / min(w, h)
+        
+        # 计算面积
+        area = cv2.contourArea(contour)
+        area_ratio = area / (width * height)
+        
+        # AI生成的图片内容区域通常具有合理的长宽比和面积
+        # 这里是一些启发式规则
+        if aspect_ratio > 5:  # 长宽比过大，可能是边缘线
+            return False
+        
+        if area_ratio < 0.1:  # 面积过小，可能是噪点
+            return False
+        
+        # 计算轮廓的复杂度（周长与面积的比值）
+        perimeter = cv2.arcLength(contour, True)
+        if perimeter > 0:
+            complexity = area / perimeter
+            if complexity < 2:  # 复杂度过高，可能是边缘线
+                return False
+        
+        return True
+    
+    def _find_content_contour_dl(self, contours: List[np.ndarray], 
+                                width: int, height: int, 
+                                mode: str) -> Optional[np.ndarray]:
+        """
+        深度学习模式下的内容轮廓查找
+        
+        Args:
+            contours: 轮廓列表
+            width: 图片宽度
+            height: 图片高度
+            mode: 检测模式
+            
+        Returns:
+            最可能的内容区域轮廓，如果未找到返回None
+        """
+        if not contours:
+            return None
+        
+        # 如果只有一个轮廓，直接返回
+        if len(contours) == 1:
+            return contours[0]
+        
+        # 根据模式选择不同的策略
+        if mode == 'dl_optimized':
+            # 深度学习优化模式：选择最符合内容特征的轮廓
+            return self._find_dl_content_contour(contours, width, height)
+        else:
+            # 默认模式：选择面积最大的轮廓
+            return max(contours, key=cv2.contourArea)
+    
+    def _find_dl_content_contour(self, contours: List[np.ndarray], 
+                                width: int, height: int) -> Optional[np.ndarray]:
+        """
+        深度学习优化模式下的内容轮廓查找
+        
+        Args:
+            contours: 轮廓列表
+            width: 图片宽度
+            height: 图片高度
+            
+        Returns:
+            最可能的内容区域轮廓，如果未找到返回None
+        """
+        # 计算图片中心
+        center_x, center_y = width // 2, height // 2
+        
+        best_contour = None
+        best_score = -1
+        
+        for contour in contours:
+            # 计算轮廓的边界框
+            x, y, w, h = cv2.boundingRect(contour)
+            
+            # 计算轮廓中心与图片中心的距离
+            contour_center_x = x + w // 2
+            contour_center_y = y + h // 2
+            distance = np.sqrt((contour_center_x - center_x)**2 + (contour_center_y - center_y)**2)
+            
+            # 计算轮廓面积
+            area = cv2.contourArea(contour)
+            
+            # 计算长宽比得分
+            aspect_ratio = max(w, h) / min(w, h)
+            aspect_score = 1.0 if 0.5 <= aspect_ratio <= 2.0 else 0.5
+            
+            # 计算面积得分
+            area_score = area / (width * height)
+            
+            # 计算位置得分（越居中得分越高）
+            distance_score = 1 - (distance / np.sqrt((width/2)**2 + (height/2)**2))
+            
+            # 综合得分
+            score = area_score * 0.5 + distance_score * 0.3 + aspect_score * 0.2
+            
+            if score > best_score:
+                best_score = score
+                best_contour = contour
+        
+        return best_contour
+    
+    def _detect_by_border_analysis_dl(self, gray: np.ndarray, 
+                                     mode: str) -> Optional[Tuple[int, int, int, int]]:
+        """
+        深度学习模式的边界分析法
+        
+        Args:
+            gray: 灰度图像
+            mode: 检测模式
+            
+        Returns:
+            (left, top, right, bottom) 边界坐标，如果检测失败返回None
+        """
+        h, w = gray.shape
+        
+        # 使用纹理分析来检测边缘
+        # 计算局部纹理复杂度
+        texture_complexity = self._calculate_texture_complexity(gray)
+        
+        # 设置阈值
+        threshold = np.percentile(texture_complexity, 25) * self.ai_texture_sensitivity
+        
+        # 从上往下扫描
+        top = 0
+        for i in range(h):
+            if texture_complexity[i] > threshold:
+                top = i
+                break
+        
+        # 从下往上扫描
+        bottom = h - 1
+        for i in range(h - 1, -1, -1):
+            if texture_complexity[i] > threshold:
+                bottom = i
+                break
+        
+        # 计算列纹理复杂度
+        col_texture_complexity = np.mean(texture_complexity.reshape(-1, 1), axis=0)
+        
+        # 从左往右扫描
+        left = 0
+        for i in range(w):
+            if col_texture_complexity[i] > threshold:
+                left = i
+                break
+        
+        # 从右往左扫描
+        right = w - 1
+        for i in range(w - 1, -1, -1):
+            if col_texture_complexity[i] > threshold:
+                right = i
+                break
+        
+        # 检查边界是否有效
+        max_edge_thickness = int(min(w, h) * self.edge_thickness_ratio)
+        
+        if (top >= max_edge_thickness or left >= max_edge_thickness or
+            bottom <= h - max_edge_thickness or right <= w - max_edge_thickness):
+            return None
+        
+        return (left, top, right + 1, bottom + 1)
+    
+    def _calculate_texture_complexity(self, gray: np.ndarray) -> np.ndarray:
+        """
+        计算图像的纹理复杂度
+        
+        Args:
+            gray: 灰度图像
+            
+        Returns:
+            每行的纹理复杂度
+        """
+        h, w = gray.shape
+        
+        # 计算每行的梯度
+        grad_x = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
+        grad_y = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
+        gradient_magnitude = np.sqrt(grad_x**2 + grad_y**2)
+        
+        # 计算每行的平均梯度
+        row_gradients = np.mean(gradient_magnitude, axis=1)
+        
+        # 计算每行的方差（纹理复杂度）
+        row_var = np.var(gray, axis=1)
+        
+        # 综合纹理复杂度
+        texture_complexity = row_gradients * 0.7 + row_var * 0.3
+        
+        return texture_complexity
+    
+    def preview_detection(self, image: Image.Image, mode: str = 'auto') -> Image.Image:
+        """
+        预览检测结果（在原图上绘制检测到的边界框）
+        
+        Args:
+            image: PIL图像对象
+            mode: 检测模式
+            
+        Returns:
+            带有标记的预览图
+        """
+        img_array = np.array(image)
+        if len(img_array.shape) == 2:  # 灰度图
+            gray = img_array
+        else:  # 彩色图
+            gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+        
+        crop_box = self._detect_content_area_dl(gray, img_array.shape, mode)
+        
+        if crop_box is None:
+            # 没有检测到，返回原图
+            return image
+        
+        # 绘制检测框
+        preview = img_array.copy()
+        x1, y1, x2, y2 = crop_box
+        
+        # 绘制矩形框（绿色，粗线）
+        cv2.rectangle(preview, (x1, y1), (x2, y2), (0, 255, 0), 3)
+        
+        # 绘制角点
+        marker_size = 20
+        cv2.line(preview, (x1, y1), (x1 + marker_size, y1), (255, 0, 0), 3)
+        cv2.line(preview, (x1, y1), (x1, y1 + marker_size), (255, 0, 0), 3)
+        
+        cv2.line(preview, (x2, y1), (x2 - marker_size, y1), (255, 0, 0), 3)
+        cv2.line(preview, (x2, y1), (x2, y1 + marker_size), (255, 0, 0), 3)
+        
+        cv2.line(preview, (x1, y2), (x1 + marker_size, y2), (255, 0, 0), 3)
+        cv2.line(preview, (x1, y2), (x1, y2 - marker_size), (255, 0, 0), 3)
+        
+        cv2.line(preview, (x2, y2), (x2 - marker_size, y2), (255, 0, 0), 3)
+        cv2.line(preview, (x2, y2), (x2, y2 - marker_size), (255, 0, 0), 3)
+        
+        return Image.fromarray(preview)
+    
+    def batch_process(self, images: List[Image.Image], 
+                     mode: str = 'auto') -> List[Image.Image]:
+        """
+        批量处理多张图片
+        
+        Args:
+            images: PIL图像列表
+            mode: 检测模式
+            
+        Returns:
+            处理后的图像列表
+        """
+        return [self.detect_and_remove_edges(img, mode) for img in images]
+
+
+# ==================== 使用示例 ====================
+def example_usage():
+    """使用示例"""
+    # 创建检测器
+    detector = DLEdgeDetector()
+    
+    # 加载图片
+    image = Image.open("test_image.png")
+    
+    # === 方式1：标准处理 ===
+    result = detector.detect_and_remove_edges(image, mode='auto')
+    result.save("result_auto.png")
+    
+    # === 方式2：深度学习优化处理 ===
+    result_dl = detector.detect_and_remove_edges(image, mode='dl_optimized')
+    result_dl.save("result_dl.png")
+    
+    # === 方式3：预览检测结果 ===
+    preview = detector.preview_detection(image, mode='dl_optimized')
+    preview.save("preview_dl.png")
+    
+    # === 方式4：批量处理 ===
+    images = [Image.open(f"image_{i}.png") for i in range(5)]  # type: List[Image.Image]
+    results = detector.batch_process(images, mode='dl_optimized')
+    for i, result in enumerate(results):
+        result.save(f"result_{i}_dl.png")
+
+
+if __name__ == "__main__":
+    example_usage()

@@ -1,0 +1,16 @@
+{
+  "last_directory": "D:/豆包游览器资源",
+  "output_format": "PNG",
+  "default_grid_type": "auto",
+  "custom_rows": 3,
+  "custom_cols": 3,
+  "enable_manual_lines": false,
+  "window_size": "1260x769+-17+34",
+  "output_mode": "same_dir",
+  "custom_output_path": "",
+  "last_rotation_angles": {},
+  "language": "zh",
+  "edge_detection_enabled": true,
+  "edge_detector_type": "optimized_smart",
+  "edge_detector_mode": "dashed_lines"
+}
