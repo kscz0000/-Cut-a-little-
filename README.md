@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 剪一剪 - 表情包分割器 ✂️
 
 ![版本](https://img.shields.io/badge/version-2.0-blue)
@@ -188,3 +189,7 @@ python setup.py build
 <p align="center">
   Made with ❤️ by 表情包工具开发团队
 </p>
+=======
+# -Cut-a-little-
+裁剪图像，裁剪表情包(Crop images, crop meme images)
+>>>>>>> 7dfce2a4a375cc040cc00d0745506bde3d140aa3
