@@ -1,0 +1,17 @@
+# 剪一剪 - 表情包分割器 V2.0
+# 依赖库列表
+
+# 图像处理
+Pillow>=10.0.0
+PyQt6>=6.10.0
+PyQt6-Qt6>=6.10.0
+
+# 性能优化
+opencv-python-headless>=4.8.0
+numpy>=1.24.0
+
+# 开发和测试工具
+cx_Freeze>=6.15.0  # 用于打包exe文件
+
+# GUI框架（Python内置，无需安装）
+# tkinter (built-in)
