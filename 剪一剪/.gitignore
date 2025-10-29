@@ -51,6 +51,11 @@ Thumbs.db
 # Log files
 *.log
 
+# Distribution files
+剪一剪/releases/*/*/*.exe
+剪一剪/dist/*/*/*.exe
+*.exe
+
 # Backup files
 *.bak
 *.backup
