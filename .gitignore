@@ -1,17 +1,11 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-<<<<<<< HEAD
 *.py[cod]
-*$py.class
-
-=======
-*.py[codz]
 *$py.class
 
 # C extensions
 *.so
 
->>>>>>> 7dfce2a4a375cc040cc00d0745506bde3d140aa3
 # Distribution / packaging
 .Python
 build/
@@ -26,59 +20,13 @@ parts/
 sdist/
 var/
 wheels/
-<<<<<<< HEAD
-=======
 share/python-wheels/
->>>>>>> 7dfce2a4a375cc040cc00d0745506bde3d140aa3
 *.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
 
 # PyInstaller
-<<<<<<< HEAD
-*.manifest
-*.spec
-
-# Test output files
-test_*.png
-result_*.png
-preview_*.png
-temp_*.png
-test_*.jpg
-result_*.jpg
-preview_*.jpg
-temp_*.jpg
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-*.tmp
-*.temp
-
-# Log files
-*.log
-
-# Distribution files
-剪一剪/releases/*/*/*.exe
-剪一剪/dist/*/*/*.exe
-*.exe
-
-# Backup files
-*.bak
-*.backup
-
-# Environment
-.env
-.venv
-venv/
-=======
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
@@ -257,4 +205,77 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
->>>>>>> 7dfce2a4a375cc040cc00d0745506bde3d140aa3
+
+# Test output files
+test_*.png
+result_*.png
+preview_*.png
+temp_*.png
+test_*.jpg
+result_*.jpg
+preview_*.jpg
+temp_*.jpg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# Log files
+*.log
+
+# Distribution files
+剪一剪/releases/*/*/*.exe
+剪一剪/dist/*/*/*.exe
+*.exe
+
+# Backup files
+*.bak
+*.backup
+
+# Large files
+*.pkg
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.tar.bz2
+
+# Build directories
+build/
+dist/
+
+# Cache directories
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.coverage
+nosetests.xml
+coverage.xml
+*.cover
+*.py.cover
+.hypothesis/
+
+# Local configuration files
+config.local.json
+settings.local.json
+
+# Sensitive files
+*.key
+*.pem
+*.crt
+*.cer
+*.p12
+*.pfx
+*.jks
+*.keystore
