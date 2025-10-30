@@ -59,13 +59,13 @@
 ## <a name="screenshots"></a>📸 应用截图
 
 <p align="center">
-  <img src="@AGI.png" alt="主界面" width="700">
+  <img src="主页界面UI.jpg" alt="主界面" width="700">
   <br>
   <em>现代化三栏布局界面</em>
 </p>
 
 <p align="center">
-  <img src="llqq.png" alt="分割预览" width="700">
+  <img src="裁剪后效果图.jpg" alt="分割预览" width="700">
   <br>
   <em>实时分割预览效果</em>
 </p>
