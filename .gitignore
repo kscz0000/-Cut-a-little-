@@ -216,6 +216,11 @@ result_*.jpg
 preview_*.jpg
 temp_*.jpg
 
+# Test scripts and temporary files
+test_*.py
+*_test.py
+test_*/
+
 # IDE
 .idea/
 .vscode/
