@@ -48,29 +48,27 @@ from core.edge_detection.adaptive_edge_detector import AdaptiveEdgeDetector
 from core.edge_detection.enhanced_smart_edge_detector import EnhancedSmartEdgeDetector
 from core.edge_detection.optimized_smart_edge_detector import OptimizedSmartEdgeDetector
 # 尝试导入深度学习边缘检测器，如果失败则使用占位符
-try:
-    # 深度学习边缘检测器已移除
-# 根据用户要求，删除了边缘线处理相关功能
-    DEEP_LEARNING_AVAILABLE = True
-except ImportError:
-    # 创建一个占位符类
-    class DeepLearningEdgeDetector:
-        def __init__(self):
-            pass
-        
-        def detect_and_remove_edges(self, image, mode='auto'):
-            # 回退到基础检测器
-            from core.edge_detection.smart_edge_detector import SmartEdgeDetector
-            detector = SmartEdgeDetector()
-            return detector.detect_and_remove_edges(image, mode)
-        
-        def preview_detection(self, image, mode='auto'):
-            # 回退到基础检测器
-            from core.edge_detection.smart_edge_detector import SmartEdgeDetector
-            detector = SmartEdgeDetector()
-            return detector.preview_detection(image)
+# 由于PyTorch DLL问题，我们直接使用占位符类
+# 创建一个占位符类
+class PlaceholderDeepLearningEdgeDetector:
+    def __init__(self):
+        pass
     
-    DEEP_LEARNING_AVAILABLE = False
+    def detect_and_remove_edges(self, image, mode='auto'):
+        # 回退到基础检测器
+        from core.edge_detection.smart_edge_detector import SmartEdgeDetector
+        detector = SmartEdgeDetector()
+        return detector.detect_and_remove_edges(image, mode)
+    
+    def preview_detection(self, image, mode='auto'):
+        # 回退到基础检测器
+        from core.edge_detection.smart_edge_detector import SmartEdgeDetector
+        detector = SmartEdgeDetector()
+        return detector.preview_detection(image)
+
+# 使用占位符类
+DeepLearningEdgeDetector = PlaceholderDeepLearningEdgeDetector
+DEEP_LEARNING_AVAILABLE = False
 from core.edge_detection.simple_smart_crop_dialog import SimpleSmartCropDialog
 from utils.validators import Validators
 import time
@@ -86,10 +84,10 @@ class AboutConfig:
     RELEASE_DATE = "2025-01-25"
     
     # 链接配置
-    GITHUB_URL = "https://github.com/剪一剪/jianyijian"
+    GITHUB_URL = "https://github.com/kscz0000/-Cut-a-little-"
     TWITTER_URL = "https://twitter.com/your-handle"
     EMAIL = "byilb3619b@gmail.com"
-    ISSUES_URL = "https://github.com/剪一剪/jianyijian/issues"
+    ISSUES_URL = "https://github.com/kscz0000/-Cut-a-little-/issues"
     
     # 特性列表
     FEATURES = [
@@ -371,7 +369,33 @@ class ProcessThread(QThread):
         self.adaptive_edge_detector = AdaptiveEdgeDetector()
         self.enhanced_smart_edge_detector = EnhancedSmartEdgeDetector()
         self.optimized_smart_edge_detector = OptimizedSmartEdgeDetector()
-        self.deep_learning_edge_detector = DeepLearningEdgeDetector()
+        # 安全地创建深度学习边缘检测器实例，避免PyTorch DLL问题
+        try:
+            from core.edge_detection.deep_learning_edge_detector import DeepLearningEdgeDetector
+            self.deep_learning_edge_detector = DeepLearningEdgeDetector()
+        except Exception as e:
+            print(f"警告: 无法创建深度学习边缘检测器，使用占位符: {e}")
+            # 创建一个占位符实例
+            class DummyDeepLearningEdgeDetector:
+                def __init__(self):
+                    pass
+                
+                def detect_and_remove_edges(self, image, mode='auto'):
+                    # 回退到基础检测器
+                    from core.edge_detection.smart_edge_detector import SmartEdgeDetector
+                    detector = SmartEdgeDetector()
+                    return detector.detect_and_remove_edges(image, mode)
+                
+                def preview_detection(self, image, mode='auto'):
+                    # 回退到基础检测器
+                    from core.edge_detection.smart_edge_detector import SmartEdgeDetector
+                    detector = SmartEdgeDetector()
+                    return detector.preview_detection(image)
+            
+            self.deep_learning_edge_detector = DummyDeepLearningEdgeDetector()
+        
+        # 设置输出目录
+        self.output_dir = os.path.expanduser("~/Pictures")
         self._is_cancelled = False
     
     def cancel(self):
@@ -424,31 +448,171 @@ class ProcessThread(QThread):
                 self.log.emit(f"  [失败] 无法加载图片")
                 return False
             
-            angle = self.rotation_angles.get(file_path, 0)
-            if angle != 0:
-                image = self.image_processor.rotate_image(image, angle)
-            
             # 智能边缘线识别功能已移除
             # 根据用户要求，删除了边缘线处理相关逻辑
             
-            if self.settings['mode'] == 'auto':
+            if self.settings.get('mode', 'auto') == 'auto':
                 grid_type = self.image_processor.detect_grid_type(*image.size)
                 rows, cols = (3, 3) if grid_type == "9grid" else (2, 2)
             else:
-                rows = self.settings['rows']
-                cols = self.settings['cols']
+                rows = self.settings.get('rows', 3)
+                cols = self.settings.get('cols', 3)
             
             split_images = self.image_processor.crop_by_lines(image, rows, cols)
             
-            base_path = self.file_manager.get_output_path(file_path)
             folder_name = self.file_manager.generate_output_folder_name(os.path.basename(file_path))
+            
+            # 获取输出目录
+            custom_output_path = self.settings.get('custom_output_path', '')
+            use_custom_path = bool(custom_output_path)
+            if use_custom_path:
+                base_path = custom_output_path
+            else:
+                base_path = os.path.dirname(file_path)
             
             success, output_path = self.file_manager.create_output_folder(base_path, folder_name)
             if not success:
                 self.log.emit(f"  [失败] {output_path}")
                 return False
             
-            output_format = self.settings['format']
+            output_format = self.settings.get('format', 'PNG')
+            saved_count, failed_files = self.file_manager.save_split_images(
+                split_images,
+                output_path,
+                os.path.basename(file_path),
+                output_format
+            )
+            
+            if failed_files:
+                for error in failed_files:
+                    self.log.emit(f"  [失败] {error}")
+            
+            self.log.emit(f"  [成功] 已保存 {saved_count} 张图片 -> {os.path.basename(output_path)}")
+            
+            return saved_count > 0
+            
+        except Exception as e:
+            self.log.emit(f"  [异常] {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return False
+
+
+class SmartCropWorker(QObject):
+    log = pyqtSignal(str)
+    progress = pyqtSignal(int, str)
+    finished = pyqtSignal(int, int, float)
+    error = pyqtSignal(str)
+
+    def __init__(self, files, output_dir, options):
+        super().__init__()
+        self.files = files
+        self.output_dir = output_dir
+        self.options = options
+        self.image_processor = ImageProcessor()
+        self.file_manager = FileManager()
+        try:
+            self.deep_learning_edge_detector = DeepLearningEdgeDetector()
+        except Exception as e:
+            print(f"警告: 无法创建深度学习边缘检测器: {e}")
+            # 创建一个占位符实例
+            class DummyDeepLearningEdgeDetector:
+                def __init__(self):
+                    pass
+                
+                def detect_and_remove_edges(self, image, mode='auto'):
+                    # 回退到基础检测器
+                    from core.edge_detection.smart_edge_detector import SmartEdgeDetector
+                    detector = SmartEdgeDetector()
+                    return detector.detect_and_remove_edges(image, mode)
+                
+                def preview_detection(self, image, mode='auto'):
+                    # 回退到基础检测器
+                    from core.edge_detection.smart_edge_detector import SmartEdgeDetector
+                    detector = SmartEdgeDetector()
+                    return detector.preview_detection(image)
+            
+            self.deep_learning_edge_detector = DummyDeepLearningEdgeDetector()
+        self._is_cancelled = False
+    
+    def cancel(self):
+        """取消处理"""
+        self._is_cancelled = True
+    
+    def run(self):
+        """执行处理"""
+        total = len(self.files)
+        success_count = 0
+        fail_count = 0
+        start_time = time.time()
+        
+        try:
+            for i, file_path in enumerate(self.files):
+                if self._is_cancelled:
+                    self.log.emit("处理已取消")
+                    break
+                
+                progress = int((i / total) * 100)
+                filename = os.path.basename(file_path)
+                
+                self.progress.emit(progress, f"处理中: {i+1}/{total} - {filename}")
+                self.log.emit(f"[处理] {filename}")
+                
+                try:
+                    success = self.process_single_file(file_path)
+                    if success:
+                        success_count += 1
+                    else:
+                        fail_count += 1
+                except Exception as e:
+                    self.log.emit(f"  [异常] {str(e)}")
+                    self.error.emit(f"处理 {filename} 时出错: {str(e)}")
+                    fail_count += 1
+            
+            elapsed = time.time() - start_time
+            self.progress.emit(100, "处理完成！")
+            self.finished.emit(success_count, fail_count, elapsed)
+            
+        except Exception as e:
+            self.error.emit(f"线程异常: {str(e)}")
+            self.finished.emit(success_count, fail_count, time.time() - start_time)
+    
+    def process_single_file(self, file_path: str) -> bool:
+        """处理单个文件"""
+        try:
+            image = self.image_processor.load_image(file_path)
+            if not image:
+                self.log.emit(f"  [失败] 无法加载图片")
+                return False
+            
+            # 智能边缘线识别功能已移除
+            # 根据用户要求，删除了边缘线处理相关逻辑
+            
+            if self.options.get('mode', 'auto') == 'auto':
+                grid_type = self.image_processor.detect_grid_type(*image.size)
+                rows, cols = (3, 3) if grid_type == "9grid" else (2, 2)
+            else:
+                rows = self.options.get('rows', 3)
+                cols = self.options.get('cols', 3)
+            
+            split_images = self.image_processor.crop_by_lines(image, rows, cols)
+            
+            folder_name = self.file_manager.generate_output_folder_name(os.path.basename(file_path))
+            
+            # 获取输出目录
+            custom_output_path = self.options.get('custom_output_path', '')
+            use_custom_path = bool(custom_output_path)
+            if use_custom_path:
+                base_path = custom_output_path
+            else:
+                base_path = os.path.dirname(file_path)
+            
+            success, output_path = self.file_manager.create_output_folder(base_path, folder_name)
+            if not success:
+                self.log.emit(f"  [失败] {output_path}")
+                return False
+            
+            output_format = self.options.get('format', 'PNG')
             saved_count, failed_files = self.file_manager.save_split_images(
                 split_images,
                 output_path,
@@ -2585,6 +2749,8 @@ class MainWindowQt(QMainWindow):
         
         # 尝试加载作者头像
         author_img_paths = [
+            os.path.join(project_root, "公众号.jpg"),
+            os.path.join(os.getcwd(), "公众号.jpg"),
             os.path.join(project_root, "cai.jpg"),
             os.path.join(os.getcwd(), "cai.jpg")
         ]
