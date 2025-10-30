@@ -81,8 +81,8 @@
 
 1. **克隆仓库**
 ```bash
-git clone https://github.com/your-username/jianyijian.git
-cd jianyijian
+git clone https://github.com/kscz0000/-Cut-a-little-.git
+cd -Cut-a-little-
 ```
 
 2. **安装依赖**
@@ -174,7 +174,8 @@ python setup.py build
 ## 📧 联系方式
 
 - **邮箱**: byilb3619b@gmail.com
-- **GitHub Issues**: [提交问题](https://github.com/your-username/jianyijian/issues)
+- **GitHub Issues**: [提交问题](https://github.com/kscz0000/-Cut-a-little-/issues)
+- **QQ邮箱**：1715635335@qq.com
 
 ## 🌟 支持项目
 

@@ -9,6 +9,13 @@ PyQt6-Qt6>=6.10.0
 # 性能优化
 opencv-python-headless>=4.8.0
 numpy>=1.24.0
+scipy>=1.11.4
+
+# 深度学习和图像处理
+torch>=2.9.0
+torchvision>=0.24.0
+scikit-image>=0.25.2
+imageio>=2.33.0
 
 # 开发和测试工具
 cx_Freeze>=6.15.0  # 用于打包exe文件

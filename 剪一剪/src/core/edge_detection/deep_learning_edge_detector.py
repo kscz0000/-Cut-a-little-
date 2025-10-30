@@ -13,14 +13,36 @@ try:
     import torch
     from torchvision import transforms
     TORCH_AVAILABLE = True
+    print("PyTorch已成功加载")
+    
+    # 测试PyTorch是否能正常工作
+    try:
+        x = torch.randn(1, 1)
+        print("PyTorch功能正常")
+    except Exception as e:
+        print(f"PyTorch功能测试失败: {e}")
+        TORCH_AVAILABLE = False
+        transforms = None
+        torch = None
 except ImportError:
     TORCH_AVAILABLE = False
     transforms = None
+    torch = None
+except Exception as e:
+    print(f"PyTorch加载失败: {e}")
+    TORCH_AVAILABLE = False
+    transforms = None
+    torch = None
 
 from scipy import ndimage
+# 修复导入问题 - 使用正确的函数
 from skimage.segmentation import watershed
-from skimage.feature import peak_local_maxima
-
+# 新版本skimage中peak_local_maxima已被移除，使用其他方法替代
+try:
+    from skimage.feature import peak_local_maxima
+except ImportError:
+    # 新版本skimage中使用其他方法
+    peak_local_maxima = None
 
 class DeepLearningEdgeDetector:
     """基于深度学习的智能边缘线检测器"""
