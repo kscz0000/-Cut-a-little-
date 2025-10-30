@@ -68,8 +68,8 @@ class ImageProcessor:
             if angle == 0:
                 return image.copy()
             
-            # 使用高质量重采样旋转
-            return image.rotate(-angle, expand=expand, resample=Image.Resampling.LANCZOS)
+            # 使用兼容的重采样旋转（BICUBIC提供较好的图像质量）
+            return image.rotate(-angle, expand=expand, resample=Image.Resampling.BICUBIC)
         except Exception as e:
             print(f"旋转图片失败: {e}")
             # 如果旋转失败，返回原图副本
@@ -89,7 +89,7 @@ class ImageProcessor:
         """
         # 复制图片以避免修改原图
         thumb = image.copy()
-        thumb.thumbnail(max_size, Image.Resampling.LANCZOS)
+        thumb.thumbnail(max_size, Image.Resampling.BICUBIC)
         return thumb
     
     @staticmethod
@@ -163,7 +163,7 @@ class ImageProcessor:
     def detect_grid_type(width: int, height: int) -> str:
         """
         自动检测宫格类型
-        
+
         Args:
             width: 图片宽度
             height: 图片高度
@@ -171,15 +171,28 @@ class ImageProcessor:
         Returns:
             宫格类型: "4grid" 或 "9grid"
         """
-        ratio = width / height if height > 0 else 1
+        # 避免除零错误
+        if height == 0:
+            return "4grid"
+            
+        ratio = width / height
         
-        # 正方形或接近正方形 -> 九宫格
-        if 0.9 <= ratio <= 1.1 and min(width, height) >= 300:
+        # 九宫格判断条件：
+        # 1. 接近正方形 (宽高比在0.8-1.25之间)
+        # 2. 尺寸足够大 (最小边大于150像素)
+        if 0.8 <= ratio <= 1.25 and min(width, height) >= 150:
             return "9grid"
         
-        # 横向矩形或纵向矩形 -> 四宫格
-        elif (1.8 <= ratio <= 2.2) or (0.45 <= ratio <= 0.55):
+        # 四宫格判断条件：
+        # 1. 明显的矩形形状 (宽高比在1.5-2.5之间或0.4-0.67之间)
+        # 2. 尺寸足够大 (最小边大于100像素)
+        elif ((1.5 <= ratio <= 2.5) or (0.4 <= ratio <= 0.67)) and min(width, height) >= 100:
             return "4grid"
+        
+        # 对于其他情况，基于尺寸比例进行判断
+        # 如果宽高比较接近1，倾向于九宫格
+        elif 0.7 <= ratio <= 1.4 and min(width, height) >= 100:
+            return "9grid"
         
         # 默认四宫格
         return "4grid"

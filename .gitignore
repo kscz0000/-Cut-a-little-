@@ -284,3 +284,9 @@ settings.local.json
 *.pfx
 *.jks
 *.keystore
+
+# Claude IDE configuration files
+.claude/
+
+# Qoder IDE configuration files
+.qoder/
