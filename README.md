@@ -6,7 +6,7 @@
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
 
 <p align="center">
-  <img src="assets/app_icon.png" alt="剪一剪Logo" width="120">
+  <img src="剪一剪/剪一剪图标.png" alt="剪一剪Logo" width="120">
 </p>
 
 <p align="center">

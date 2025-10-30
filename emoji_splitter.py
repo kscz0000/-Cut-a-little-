@@ -4,6 +4,7 @@
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, Listbox
+from PIL import Image, ImageTk
 import os
 import threading
 import json
@@ -68,7 +69,7 @@ class EmojiSplitter:
         self.root.minsize(750, 650)
         self.root.configure(bg='#F5F5DC')
         try:
-            base_path = sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.dirname(__file__)
+            base_path = getattr(sys, '_MEIPASS', os.path.dirname(__file__)) if getattr(sys, 'frozen', False) else os.path.dirname(__file__)
             icon_path = os.path.join(base_path, "app_icon.png")
             self.root.iconbitmap(icon_path)
         except: pass

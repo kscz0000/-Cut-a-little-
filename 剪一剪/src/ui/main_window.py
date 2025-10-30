@@ -704,102 +704,6 @@ class MainWindow:
         self.rows_var.trace('w', lambda *args: self.on_settings_change())
         self.cols_var.trace('w', lambda *args: self.on_settings_change())
     
-    def create_bottom_section(self, parent):
-        """创建底部操作区"""
-        bottom_frame = tk.Frame(parent, bg='#F5F5F5')
-        bottom_frame.pack(fill='both', expand=True)
-        
-        # 日志区
-        log_frame = tk.LabelFrame(
-            bottom_frame,
-            text=" 处理日志 ",
-            font=('微软雅黑', 10, 'bold'),
-            bg='#FFFFFF',
-            padx=10,
-            pady=8
-        )
-        log_frame.pack(side='left', fill='both', expand=True, padx=(0, 8))
-        
-        log_scroll = tk.Scrollbar(log_frame)
-        log_scroll.pack(side='right', fill='y')
-        
-        self.log_text = tk.Text(
-            log_frame,
-            font=('Consolas', 9),
-            yscrollcommand=log_scroll.set,
-            wrap=tk.WORD,
-            bg='#f8f9fa',
-            height=6
-        )
-        self.log_text.pack(side='left', fill='both', expand=True)
-        log_scroll.config(command=self.log_text.yview)
-        
-        # 操作按钮区
-        action_frame = tk.LabelFrame(
-            bottom_frame,
-            text=" 操作 ",
-            font=('微软雅黑', 10, 'bold'),
-            bg='#FFFFFF',
-            width=180,
-            padx=10,
-            pady=8
-        )
-        action_frame.pack(side='right', fill='y')
-        action_frame.pack_propagate(False)
-        
-        # 进度显示
-        self.progress_label = tk.Label(
-            action_frame,
-            text="准备就绪",
-            font=('微软雅黑', 9),
-            bg='#FFFFFF',
-            fg='#7f8c8d'
-        )
-        self.progress_label.pack(pady=(0, 5))
-        
-        self.progress_bar = ttk.Progressbar(
-            action_frame,
-            mode='determinate',
-            length=160
-        )
-        self.progress_bar.pack(fill='x', pady=(0, 10))
-        
-        # 处理按钮
-        self.process_btn = tk.Button(
-            action_frame,
-            text="开始处理",
-            font=('微软雅黑', 11, 'bold'),
-            bg='#27ae60',
-            fg='white',
-            command=self.start_processing
-        )
-        self.process_btn.pack(fill='x', pady=(0, 5))
-        
-        tk.Button(
-            action_frame,
-            text="打开输出文件夹",
-            font=('微软雅黑', 9),
-            bg='#3498db',
-            fg='white',
-            command=self.open_output_folder
-        ).pack(fill='x', pady=(0, 5))
-        
-        tk.Button(
-            action_frame,
-            text="清空日志",
-            font=('微软雅黑', 9),
-            bg='#95a5a6',
-            fg='white',
-            command=self.clear_log
-        ).pack(fill='x')
-        
-        # 添加初始日志
-        self.add_log("✨ 剪一剪 V2.0 已启动")
-        self.add_log("💡 Phase 3: 完整功能版")
-        self.add_log("✅ 功能: 预览 | 旋转 | 批量处理 | 导出")
-        self.add_log("📢 请添加图片文件开始")
-        self.add_log("="*50)
-    
     def on_settings_change(self):
         """设置变更时更新预览"""
         if self.current_image and self.current_file_index != -1:
@@ -1141,6 +1045,10 @@ class MainWindow:
     
     def update_original_preview(self, image, angle):
         """更新原图预览"""
+        # 检查Canvas是否存在
+        if not self.original_canvas:
+            return
+            
         # 创建缩略图
         thumb = self.image_processor.create_thumbnail(image, (260, 260))
         photo = self.image_processor.pil_to_tkimage(thumb)
@@ -1155,7 +1063,10 @@ class MainWindow:
         y = canvas_height // 2 if canvas_height > 1 else 140
         
         self.original_canvas_image = self.original_canvas.create_image(x, y, image=photo)
-        self.original_canvas.image = photo  # 保持引用
+        # 保持引用以防止垃圾回收
+        if not hasattr(self, '_canvas_images'):
+            self._canvas_images = []
+        self._canvas_images.append(photo)
         
         # 更新信息
         width, height = image.size
@@ -1238,7 +1149,7 @@ class MainWindow:
     
     def on_canvas_press(self, event):
         """鼠标按下事件"""
-        if not self.current_image:
+        if not self.current_image or not self.original_canvas:
             return
         self.drag_start = (event.x, event.y)
         canvas_center = (self.original_canvas.winfo_width() // 2, self.original_canvas.winfo_height() // 2)
@@ -1247,7 +1158,7 @@ class MainWindow:
     
     def on_canvas_drag(self, event):
         """鼠标拖动事件（旋转）"""
-        if not self.current_image or not self.drag_start:
+        if not self.current_image or not self.drag_start or not self.original_canvas:
             return
         
         # 计算旋转角度

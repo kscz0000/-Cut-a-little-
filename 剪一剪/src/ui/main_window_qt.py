@@ -41,6 +41,8 @@ from core.settings_manager import SettingsManager
 from core.language_manager import LanguageManager
 from core.image_processor import ImageProcessor
 from core.file_manager import FileManager
+
+from core.file_manager import FileManager
 from core.edge_detection.smart_edge_detector import SmartEdgeDetector
 from core.edge_detection.enhanced_edge_detector import EnhancedEdgeDetector
 from core.edge_detection.dl_edge_detector import DLEdgeDetector
@@ -69,7 +71,6 @@ class PlaceholderDeepLearningEdgeDetector:
 # 使用占位符类
 DeepLearningEdgeDetector = PlaceholderDeepLearningEdgeDetector
 DEEP_LEARNING_AVAILABLE = False
-from core.edge_detection.simple_smart_crop_dialog import SimpleSmartCropDialog
 from utils.validators import Validators
 import time
 import numpy as np
@@ -363,37 +364,6 @@ class ProcessThread(QThread):
         self.settings = settings
         self.image_processor = ImageProcessor()
         self.file_manager = FileManager()
-        self.edge_detector = SmartEdgeDetector()
-        self.enhanced_edge_detector = EnhancedEdgeDetector()
-        self.dl_edge_detector = DLEdgeDetector()
-        self.adaptive_edge_detector = AdaptiveEdgeDetector()
-        self.enhanced_smart_edge_detector = EnhancedSmartEdgeDetector()
-        self.optimized_smart_edge_detector = OptimizedSmartEdgeDetector()
-        # 安全地创建深度学习边缘检测器实例，避免PyTorch DLL问题
-        try:
-            from core.edge_detection.deep_learning_edge_detector import DeepLearningEdgeDetector
-            self.deep_learning_edge_detector = DeepLearningEdgeDetector()
-        except Exception as e:
-            print(f"警告: 无法创建深度学习边缘检测器，使用占位符: {e}")
-            # 创建一个占位符实例
-            class DummyDeepLearningEdgeDetector:
-                def __init__(self):
-                    pass
-                
-                def detect_and_remove_edges(self, image, mode='auto'):
-                    # 回退到基础检测器
-                    from core.edge_detection.smart_edge_detector import SmartEdgeDetector
-                    detector = SmartEdgeDetector()
-                    return detector.detect_and_remove_edges(image, mode)
-                
-                def preview_detection(self, image, mode='auto'):
-                    # 回退到基础检测器
-                    from core.edge_detection.smart_edge_detector import SmartEdgeDetector
-                    detector = SmartEdgeDetector()
-                    return detector.preview_detection(image)
-            
-            self.deep_learning_edge_detector = DummyDeepLearningEdgeDetector()
-        
         # 设置输出目录
         self.output_dir = os.path.expanduser("~/Pictures")
         self._is_cancelled = False
@@ -447,9 +417,6 @@ class ProcessThread(QThread):
             if not image:
                 self.log.emit(f"  [失败] 无法加载图片")
                 return False
-            
-            # 智能边缘线识别功能已移除
-            # 根据用户要求，删除了边缘线处理相关逻辑
             
             if self.settings.get('mode', 'auto') == 'auto':
                 grid_type = self.image_processor.detect_grid_type(*image.size)
@@ -511,28 +478,6 @@ class SmartCropWorker(QObject):
         self.options = options
         self.image_processor = ImageProcessor()
         self.file_manager = FileManager()
-        try:
-            self.deep_learning_edge_detector = DeepLearningEdgeDetector()
-        except Exception as e:
-            print(f"警告: 无法创建深度学习边缘检测器: {e}")
-            # 创建一个占位符实例
-            class DummyDeepLearningEdgeDetector:
-                def __init__(self):
-                    pass
-                
-                def detect_and_remove_edges(self, image, mode='auto'):
-                    # 回退到基础检测器
-                    from core.edge_detection.smart_edge_detector import SmartEdgeDetector
-                    detector = SmartEdgeDetector()
-                    return detector.detect_and_remove_edges(image, mode)
-                
-                def preview_detection(self, image, mode='auto'):
-                    # 回退到基础检测器
-                    from core.edge_detection.smart_edge_detector import SmartEdgeDetector
-                    detector = SmartEdgeDetector()
-                    return detector.preview_detection(image)
-            
-            self.deep_learning_edge_detector = DummyDeepLearningEdgeDetector()
         self._is_cancelled = False
     
     def cancel(self):
@@ -579,6 +524,58 @@ class SmartCropWorker(QObject):
     
     def process_single_file(self, file_path: str) -> bool:
         """处理单个文件"""
+        try:
+            image = self.image_processor.load_image(file_path)
+            if not image:
+                self.log.emit(f"  [失败] 无法加载图片")
+                return False
+            
+            if self.options.get('mode', 'auto') == 'auto':
+                grid_type = self.image_processor.detect_grid_type(*image.size)
+                rows, cols = (3, 3) if grid_type == "9grid" else (2, 2)
+            else:
+                rows = self.options.get('rows', 3)
+                cols = self.options.get('cols', 3)
+            
+            split_images = self.image_processor.crop_by_lines(image, rows, cols)
+            
+            folder_name = self.file_manager.generate_output_folder_name(os.path.basename(file_path))
+            
+            # 获取输出目录
+            custom_output_path = self.options.get('custom_output_path', '')
+            use_custom_path = bool(custom_output_path)
+            if use_custom_path:
+                base_path = custom_output_path
+            else:
+                base_path = os.path.dirname(file_path)
+            
+            success, output_path = self.file_manager.create_output_folder(base_path, folder_name)
+            if not success:
+                self.log.emit(f"  [失败] {output_path}")
+                return False
+            
+            output_format = self.options.get('format', 'PNG')
+            saved_count, failed_files = self.file_manager.save_split_images(
+                split_images,
+                output_path,
+                os.path.basename(file_path),
+                output_format
+            )
+            
+            if failed_files:
+                for error in failed_files:
+                    self.log.emit(f"  [失败] {error}")
+            
+            self.log.emit(f"  [成功] 已保存 {saved_count} 张图片 -> {os.path.basename(output_path)}")
+            
+            return saved_count > 0
+            
+        except Exception as e:
+            self.log.emit(f"  [异常] {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return False
+
         try:
             image = self.image_processor.load_image(file_path)
             if not image:
@@ -710,8 +707,6 @@ class MainWindowQt(QMainWindow):
         self.image_processor = ImageProcessor()
         self.file_manager = FileManager()
         self.validators = Validators()
-        # 边缘检测器已移除
-        # 根据用户要求，删除了边缘线处理相关功能
         
         # 设置当前语言
         language = self.settings.get("language", "zh")

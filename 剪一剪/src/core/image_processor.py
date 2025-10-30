@@ -2,7 +2,7 @@
 图像处理核心模块
 提供图片旋转、分割、预览生成等功能
 """
-from PIL import Image
+from PIL import Image, ImageTk
 from typing import List, Tuple, Optional
 import math
 import os
@@ -212,3 +212,16 @@ class ImageProcessor:
         thumb_height = max(thumb_height, min_thumb_size)
         
         return thumb_width, thumb_height
+    
+    @staticmethod
+    def pil_to_tkimage(pil_image: Image.Image) -> ImageTk.PhotoImage:
+        """
+        将PIL图像转换为Tkinter图像
+        
+        Args:
+            pil_image: PIL图像对象
+            
+        Returns:
+            Tkinter PhotoImage对象
+        """
+        return ImageTk.PhotoImage(pil_image)
