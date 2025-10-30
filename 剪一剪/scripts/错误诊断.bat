@@ -81,8 +81,8 @@ if %errorlevel% neq 0 (
 
 echo.
 echo 4. 检查资源文件...
-if not exist "assets\app_icon.ico" (
-    echo    ✗ app_icon.ico 不存在
+if not exist "assets\app_icon.png" (
+    echo    ✗ app_icon.png 不存在
     set /a error_count+=1
 ) else (
     echo    ✓ 图标文件存在

@@ -30,7 +30,7 @@ $WshShell = New-Object -comObject WScript.Shell
 $Shortcut = $WshShell.CreateShortcut("$DesktopPath\剪一剪.lnk")
 $Shortcut.TargetPath = "$InstallPath\剪一剪.exe"
 $Shortcut.WorkingDirectory = $InstallPath
-$Shortcut.IconLocation = "$InstallPath\assets\app_icon.ico"
+$Shortcut.IconLocation = "$InstallPath\assets\app_icon.png"
 $Shortcut.Save()
 
 Write-Host ""

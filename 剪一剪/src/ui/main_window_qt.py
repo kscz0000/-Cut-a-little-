@@ -3042,7 +3042,11 @@ def main():
     app.setOrganizationName("剪一剪团队")
     
     # 设置应用图标（如果存在）
-    icon_path = os.path.join(os.getcwd(), "icon.png")
+    # 首先尝试加载PNG格式的图标
+    icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "assets", "app_icon.png")
+    if not os.path.exists(icon_path):
+        # 如果PNG图标不存在，尝试加载旧的ICO格式图标
+        icon_path = os.path.join(os.getcwd(), "icon.png")
     if os.path.exists(icon_path):
         app.setWindowIcon(QIcon(icon_path))
     

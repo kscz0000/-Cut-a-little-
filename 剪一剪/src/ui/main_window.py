@@ -56,7 +56,11 @@ class MainWindow:
         
         # 设置图标
         try:
-            icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "assets", "app_icon.ico")
+            # 首先尝试加载PNG格式的图标
+            icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "assets", "app_icon.png")
+            if not os.path.exists(icon_path):
+                # 如果PNG图标不存在，尝试加载旧的ICO格式图标
+                icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "assets", "app_icon.ico")
             if os.path.exists(icon_path):
                 self.root.iconbitmap(icon_path)
         except:

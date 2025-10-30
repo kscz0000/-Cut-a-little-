@@ -56,7 +56,7 @@ releases/v2.0/jianyijian_v2.0_20251029_124038/
 - unittest
 
 **包含的资源**:
-- assets/app_icon.ico (应用图标)
+- assets/app_icon.png (应用图标)
 - config.json (配置文件)
 - 源代码模块 (src/core, src/ui, src/utils)
 

@@ -44,7 +44,7 @@ setup(
             "src/main_qt.py",
             base="Win32GUI" if sys.platform == "win32" else None,
             target_name="剪一剪.exe",
-            icon="assets/app_icon.ico"
+            icon="assets/app_icon.png"
         )
     ]
 )

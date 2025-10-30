@@ -142,7 +142,7 @@ Copy-Item -Path "$scriptDir\新文件.txt" -Destination $InstallPath -Force
 ```
 
 ### 修改图标
-1. 确保图标文件存在：`assets\app_icon.ico`
+1. 确保图标文件存在：`assets\app_icon.png`
 2. PowerShell脚本会自动检测并应用
 3. Inno Setup脚本也包含图标设置
 
@@ -158,7 +158,7 @@ jianyijian_v2.0_20251029_124038/
 ├── README.txt                  # 项目说明
 ├── 启动剪一剪.bat              # 快速启动
 └── assets/                     # 资源目录（可选）
-    └── app_icon.ico            # 应用图标
+    └── app_icon.png            # 应用图标
 ```
 
 ## 🎯 最佳实践建议
