@@ -27,8 +27,8 @@
 ### 安装步骤
 ```bash
 # 克隆仓库
-git clone https://github.com/kscz0000/-Cut-a-little-.git
-cd -Cut-a-little-
+git clone https://github.com/your-username/jianyijian.git
+cd jianyijian
 
 # 安装依赖
 pip install -r requirements.txt

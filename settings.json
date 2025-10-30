@@ -1,6 +1,7 @@
 {
   "last_directory": "D:/豆包游览器资源",
   "output_format": "PNG",
+<<<<<<< HEAD
   "auto_detect_grid": true,
   "default_grid_type": "auto",
   "window_size": "1260x769+-27+66",
@@ -15,4 +16,18 @@
   "sash_position": 250,
   "force_split_mode": false,
   "theme": "modern"
+=======
+  "default_grid_type": "auto",
+  "custom_rows": 3,
+  "custom_cols": 3,
+  "enable_manual_lines": false,
+  "window_size": "1260x769+-17+34",
+  "output_mode": "same_dir",
+  "custom_output_path": "",
+  "last_rotation_angles": {},
+  "language": "zh",
+  "edge_detection_enabled": true,
+  "edge_detector_type": "optimized_smart",
+  "edge_detector_mode": "dashed_lines"
+>>>>>>> 1edc3a05523ffa4f930393d4a708403db2dd2b72
 }

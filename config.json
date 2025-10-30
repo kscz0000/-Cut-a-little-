@@ -1,0 +1,20 @@
+{
+  "app_name": "剪一剪",
+  "version": "2.0.0",
+  "window": {
+    "title": "剪一剪 - 表情包分割器 V2.0",
+    "width": 1000,
+    "height": 750,
+    "min_width": 800,
+    "min_height": 650
+  },
+  "defaults": {
+    "max_files": 10,
+    "grid_rows_range": [1, 18],
+    "grid_cols_range": [1, 18],
+    "output_format": "PNG",
+    "auto_detect": true,
+    "output_mode": "same_dir"
+  },
+  "supported_formats": ["jpg", "jpeg", "png", "bmp", "webp"]
+}
