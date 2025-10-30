@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 剪一剪 - 表情包分割器 ✂️
 
 ![版本](https://img.shields.io/badge/version-2.0-blue)
@@ -82,8 +81,8 @@
 
 1. **克隆仓库**
 ```bash
-git clone https://github.com/your-username/jianyijian.git
-cd jianyijian
+git clone https://github.com/kscz0000/-Cut-a-little-.git
+cd -Cut-a-little-
 ```
 
 2. **安装依赖**
@@ -175,7 +174,7 @@ python setup.py build
 ## 📧 联系方式
 
 - **邮箱**: byilb3619b@gmail.com
-- **GitHub Issues**: [提交问题](https://github.com/your-username/jianyijian/issues)
+- **GitHub Issues**: [提交问题](https://github.com/kscz0000/-Cut-a-little-/issues)
 
 ## 🌟 支持项目
 
@@ -189,7 +188,3 @@ python setup.py build
 <p align="center">
   Made with ❤️ by 表情包工具开发团队
 </p>
-=======
-# -Cut-a-little-
-裁剪图像，裁剪表情包(Crop images, crop meme images)
->>>>>>> 7dfce2a4a375cc040cc00d0745506bde3d140aa3
