@@ -1,0 +1,22 @@
+{
+  "scripts": {
+    "prepare": "husky install",
+    "release": "semantic-release"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.0.0",
+    "@commitlint/config-conventional": "^17.0.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^13.0.0",
+    "prettier": "^2.7.0",
+    "semantic-release": "^19.0.0"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "lint-staged": {
+    "*.{py,json,md}": "prettier --write"
+  }
+}
