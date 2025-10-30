@@ -394,9 +394,10 @@ class ProcessThread(QThread):
             
             self.deep_learning_edge_detector = DummyDeepLearningEdgeDetector()
         self._is_cancelled = False
-
-DEEP_LEARNING_AVAILABLE = False
-from core.edge_detection.simple_smart_crop_dialog import SimpleSmartCropDialog
+    
+    def cancel(self):
+        """取消处理"""
+        self._is_cancelled = True
 
 
 class SmartCropWorker(QObject):
