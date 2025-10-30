@@ -175,6 +175,7 @@ python setup.py build
 
 - **邮箱**: byilb3619b@gmail.com
 - **GitHub Issues**: [提交问题](https://github.com/kscz0000/-Cut-a-little-/issues)
+- **QQ邮箱**：1715635335@qq.com
 
 ## 🌟 支持项目
 
