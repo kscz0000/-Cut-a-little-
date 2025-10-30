@@ -69,7 +69,7 @@ class EmojiSplitter:
         self.root.configure(bg='#F5F5DC')
         try:
             base_path = sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.dirname(__file__)
-            icon_path = os.path.join(base_path, "app_icon.ico")
+            icon_path = os.path.join(base_path, "app_icon.png")
             self.root.iconbitmap(icon_path)
         except: pass
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
